@@ -50,7 +50,7 @@ def split_train_test(data: pd.DataFrame, test_size=0.2):
 
 
 def vectorize_text(train_data: pd.DataFrame, test_data: pd.DataFrame):
-    vectorizer = CountVectorizer(binary=True)
+    vectorizer = CountVectorizer(binary=True, ngram_range=(1, 2))
     X_train_raw = vectorizer.fit_transform(train_data['Review'])
     y_train = train_data['Sentiment']
 
@@ -67,10 +67,17 @@ def vectorize_text(train_data: pd.DataFrame, test_data: pd.DataFrame):
     filtered_vocabulary = [word for word in vocabulary if pos_word_freq(word) > 0 and neg_word_freq(word) > 0]
 
     # Use the filtered_vocabulary from the training data for the test data
-    vectorizer = CountVectorizer(binary=True, vocabulary=filtered_vocabulary)
+    vectorizer = CountVectorizer(binary=True, vocabulary=filtered_vocabulary, ngram_range=(1, 2))
     X_train = vectorizer.fit_transform(train_data['Review'])
     X_test = vectorizer.transform(test_data['Review'])
     y_test = test_data['Sentiment']
+
+    # Feature selection
+    percentage_of_features = 0.6
+    k_value = int(len(filtered_vocabulary) * percentage_of_features)
+    k_best = SelectKBest(chi2, k=k_value)  # Select the 5000 best features
+    X_train = k_best.fit_transform(X_train, y_train)
+    X_test = k_best.transform(X_test)
 
     return X_train, y_train, X_test, y_test
 

@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.naive_bayes import MultinomialNB
 
 
-class SentimentClassifier:
+class NaiveBayesSentimentClassifier:
     def __init__(self, lambda_reg=1.00):
         self.clf = MultinomialNB(alpha=lambda_reg)
 

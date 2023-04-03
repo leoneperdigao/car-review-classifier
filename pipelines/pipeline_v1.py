@@ -59,7 +59,7 @@ class PipelineV1:
             tuple: A tuple containing the vectorized training data, training labels, vectorized
                 testing data, and testing labels.
         """
-        cleaned_data = self._clean_text(self.data_source)
+        cleaned_data = self.__clean_text(self.data_source)
         train_data, test_data = self._split_train_test(cleaned_data)
         X_train, y_train, X_test, y_test = self.vectorize_text(train_data, test_data)
         return X_train, y_train, X_test, y_test
@@ -77,14 +77,17 @@ class PipelineV1:
         """
         return train_test_split(data, test_size=self.test_size, shuffle=True, stratify=data[self.label_column])
 
-    def __remove_punctuation(self, text: str) -> str:
+    @staticmethod
+    def __remove_punctuation(text: str) -> str:
         return re.sub(r'\W', ' ', text).strip()
 
-    def __stem_tokens(self, tokens: List[str]) -> List[str]:
+    @staticmethod
+    def __stem_tokens(tokens: List[str]) -> List[str]:
         stemmer = PorterStemmer()
         return [stemmer.stem(token) for token in tokens]
 
-    def __lemmatize_tokens(self, tokens: List[str]) -> List[str]:
+    @staticmethod
+    def __lemmatize_tokens(tokens: List[str]) -> List[str]:
         lemmatizer = WordNetLemmatizer()
         return [lemmatizer.lemmatize(token) for token in tokens]
 
@@ -103,11 +106,11 @@ class PipelineV1:
         Returns:
             pandas.DataFrame: The cleaned input dataset.
         """
-        data[self.text_column] = data[self.text_column].apply(self.__remove_punctuation)
+        data[self.text_column] = data[self.text_column].apply(PipelineV1.__remove_punctuation)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: word_tokenize(x))
-        data[self.text_column] = data[self.text_column].apply(self.__stem_tokens)
-        data[self.text_column] = data[self.text_column].apply(self.__lemmatize_tokens)
+        data[self.text_column] = data[self.text_column].apply(PipelineV1.__stem_tokens)
+        data[self.text_column] = data[self.text_column].apply(PipelineV1.__lemmatize_tokens)
         data[self.text_column] = data[self.text_column].apply(self.__remove_stopwords)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: ' '.join(x))

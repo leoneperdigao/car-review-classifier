@@ -1,6 +1,5 @@
 import pandas as pd
 from sklearn import svm
-from sklearn.preprocessing import LabelEncoder
 
 
 class SVMSentimentClassifier:
@@ -11,10 +10,7 @@ class SVMSentimentClassifier:
         self.clf.fit(X_train, y_train)
 
     def predict(self, X_test: pd.DataFrame):
-        y_pred = self.clf.predict(X_test)
-        label_encoder = LabelEncoder()
-        label_encoder.fit(self.clf.classes_)
-        return label_encoder.inverse_transform(y_pred)
+        return self.clf.predict(X_test)
 
     def evaluate(self, X_test: pd.DataFrame, y_test: pd.DataFrame):
         y_pred = self.predict(X_test)

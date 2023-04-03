@@ -3,7 +3,7 @@ from typing import List
 import pandas as pd
 import re
 
-from sklearn.decomposition import PCA
+from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.model_selection import train_test_split
@@ -70,7 +70,7 @@ class PipelineV2:
         X_train, y_train, X_test, y_test = self.__vectorize_text(train_data, test_data)
 
         # Reduce dimensionality
-        X_train_reduced, X_test_reduced = self.__reduce_dimensionality(X_train, X_test)
+        X_train_reduced, X_test_reduced = PipelineV2.__reduce_dimensionality(X_train, X_test)
 
         return X_train_reduced, y_train, X_test_reduced, y_test
 
@@ -87,14 +87,17 @@ class PipelineV2:
         """
         return train_test_split(data, test_size=self.test_size, shuffle=True, stratify=data[self.label_column])
 
-    def __remove_punctuation(self, text: str) -> str:
+    @staticmethod
+    def __remove_punctuation(text: str) -> str:
         return re.sub(r'\W', ' ', text).strip()
 
-    def __stem_tokens(self, tokens: List[str]) -> List[str]:
+    @staticmethod
+    def __stem_tokens(tokens: List[str]) -> List[str]:
         stemmer = PorterStemmer()
         return [stemmer.stem(token) for token in tokens]
 
-    def __lemmatize_tokens(self, tokens: List[str]) -> List[str]:
+    @staticmethod
+    def __lemmatize_tokens(tokens: List[str]) -> List[str]:
         lemmatizer = WordNetLemmatizer()
         return [lemmatizer.lemmatize(token) for token in tokens]
 
@@ -113,31 +116,32 @@ class PipelineV2:
         Returns:
             pandas.DataFrame: The cleaned input dataset.
         """
-        data[self.text_column] = data[self.text_column].apply(self.__remove_punctuation)
+        data[self.text_column] = data[self.text_column].apply(PipelineV2.__remove_punctuation)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: word_tokenize(x))
-        data[self.text_column] = data[self.text_column].apply(self.__stem_tokens)
-        data[self.text_column] = data[self.text_column].apply(self.__lemmatize_tokens)
+        data[self.text_column] = data[self.text_column].apply(PipelineV2.__stem_tokens)
+        data[self.text_column] = data[self.text_column].apply(PipelineV2.__lemmatize_tokens)
         data[self.text_column] = data[self.text_column].apply(self.__remove_stopwords)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: ' '.join(x))
 
         return data
 
-    def __reduce_dimensionality(self, X_train, X_test, n_components=None):
+    @staticmethod
+    def __reduce_dimensionality(X_train, X_test, n_components=100):
         """
-        Reduces the dimensionality of the input data using PCA.
+        Reduces the dimensionality of the input data using TruncatedSVD.
 
         Args:
             X_train (array-like): The training data.
             X_test (array-like): The testing data.
-            n_components (int, optional): The number of principal components to keep.
-                If not provided, the method will preserve 95% of the explained variance.
+            n_components (int, optional): The number of components to keep.
+                If not provided, the method will keep 100 components by default.
 
         Returns:
             tuple: A tuple containing the dimensionality reduced training data, and testing data.
         """
-        pca = PCA(n_components=n_components, svd_solver='full')
+        pca = TruncatedSVD(n_components=n_components)
         X_train_reduced = pca.fit_transform(X_train)
         X_test_reduced = pca.transform(X_test)
 

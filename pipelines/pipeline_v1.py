@@ -1,3 +1,5 @@
+from typing import List
+
 import pandas as pd
 import re
 
@@ -75,7 +77,22 @@ class PipelineV1:
         """
         return train_test_split(data, test_size=self.test_size, shuffle=True, stratify=data[self.label_column])
 
-    def _clean_text(self, data: pd.DataFrame) -> pd.DataFrame:
+    def __remove_punctuation(self, text: str) -> str:
+        return re.sub(r'\W', ' ', text).strip()
+
+    def __stem_tokens(self, tokens: List[str]) -> List[str]:
+        stemmer = PorterStemmer()
+        return [stemmer.stem(token) for token in tokens]
+
+    def __lemmatize_tokens(self, tokens: List[str]) -> List[str]:
+        lemmatizer = WordNetLemmatizer()
+        return [lemmatizer.lemmatize(token) for token in tokens]
+
+    def __remove_stopwords(self, tokens: List[str]) -> List[str]:
+        stop_words = set(stopwords.words(self.language))
+        return [token for token in tokens if token not in stop_words]
+
+    def __clean_text(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Cleans the text data in the input dataset by removing punctuation, stemming, lemmatizing,
         and removing stop words.
@@ -86,22 +103,13 @@ class PipelineV1:
         Returns:
             pandas.DataFrame: The cleaned input dataset.
         """
-        # Remove redundant formatting
-        data[self.text_column] = data[self.text_column].apply(lambda x: re.sub(r'\W', ' ', x))
-        data[self.text_column] = data[self.text_column].apply(lambda x: re.sub(r'\s+', ' ', x))
-
-        # Stemming, lemmatization, and stop words removal
-        stemmer = PorterStemmer()
-        lemmatizer = WordNetLemmatizer()
-        stop_words = set(stopwords.words(self.language))
+        data[self.text_column] = data[self.text_column].apply(self.__remove_punctuation)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: word_tokenize(x))
-        data[self.text_column] = data[self.text_column].apply(
-            lambda x: [stemmer.stem(token) for token in x if token not in stop_words]
-        )
-        data[self.text_column] = data[self.text_column].apply(
-            lambda x: [lemmatizer.lemmatize(token) for token in x if token not in stop_words]
-        )
+        data[self.text_column] = data[self.text_column].apply(self.__stem_tokens)
+        data[self.text_column] = data[self.text_column].apply(self.__lemmatize_tokens)
+        data[self.text_column] = data[self.text_column].apply(self.__remove_stopwords)
+
         data[self.text_column] = data[self.text_column].apply(lambda x: ' '.join(x))
 
         return data

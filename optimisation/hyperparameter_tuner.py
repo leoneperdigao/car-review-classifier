@@ -10,7 +10,7 @@ class HyperparameterTuner:
     def grid_search(self, X_train, y_train):
         # Set up the grid search with cross-validation
         grid_search = GridSearchCV(
-            self.model_instance, self.param_grid, scoring='accuracy'
+            self.model_instance, self.param_grid, scoring='accuracy', n_jobs=-1
         )
 
         # Fit the grid search to the training data

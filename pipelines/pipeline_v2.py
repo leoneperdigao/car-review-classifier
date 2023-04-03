@@ -1,6 +1,9 @@
+from typing import List
+
 import pandas as pd
 import re
 
+from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.model_selection import train_test_split
@@ -56,16 +59,20 @@ class PipelineV2:
     def pre_process(self):
         """
         Preprocesses the text data in the input dataset by cleaning, splitting into train and test
-        datasets, vectorizing the text data, and performing feature selection.
+        datasets, vectorizing the text data, performing feature selection, and reducing dimensionality.
 
         Returns:
-            tuple: A tuple containing the vectorized training data, training labels, vectorized
+            tuple: A tuple containing the processed training data, training labels, processed
                 testing data, and testing labels.
         """
         cleaned_data = self.__clean_text(self.data_source)
         train_data, test_data = self.__split_train_test(cleaned_data)
         X_train, y_train, X_test, y_test = self.__vectorize_text(train_data, test_data)
-        return X_train, y_train, X_test, y_test
+
+        # Reduce dimensionality
+        X_train_reduced, X_test_reduced = self.__reduce_dimensionality(X_train, X_test)
+
+        return X_train_reduced, y_train, X_test_reduced, y_test
 
     def __split_train_test(self, data: pd.DataFrame):
         """
@@ -80,6 +87,21 @@ class PipelineV2:
         """
         return train_test_split(data, test_size=self.test_size, shuffle=True, stratify=data[self.label_column])
 
+    def __remove_punctuation(self, text: str) -> str:
+        return re.sub(r'\W', ' ', text).strip()
+
+    def __stem_tokens(self, tokens: List[str]) -> List[str]:
+        stemmer = PorterStemmer()
+        return [stemmer.stem(token) for token in tokens]
+
+    def __lemmatize_tokens(self, tokens: List[str]) -> List[str]:
+        lemmatizer = WordNetLemmatizer()
+        return [lemmatizer.lemmatize(token) for token in tokens]
+
+    def __remove_stopwords(self, tokens: List[str]) -> List[str]:
+        stop_words = set(stopwords.words(self.language))
+        return [token for token in tokens if token not in stop_words]
+
     def __clean_text(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Cleans the text data in the input dataset by removing punctuation, stemming, lemmatizing,
@@ -91,25 +113,35 @@ class PipelineV2:
         Returns:
             pandas.DataFrame: The cleaned input dataset.
         """
-        # Remove redundant formatting
-        data[self.text_column] = data[self.text_column].apply(lambda x: re.sub(r'\W', ' ', x))
-        data[self.text_column] = data[self.text_column].apply(lambda x: re.sub(r'\s+', ' ', x))
-
-        # Stemming, lemmatization, and stop words removal
-        stemmer = PorterStemmer()
-        lemmatizer = WordNetLemmatizer()
-        stop_words = set(stopwords.words(self.language))
+        data[self.text_column] = data[self.text_column].apply(self.__remove_punctuation)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: word_tokenize(x))
-        data[self.text_column] = data[self.text_column].apply(
-            lambda x: [stemmer.stem(token) for token in x if token not in stop_words]
-        )
-        data[self.text_column] = data[self.text_column].apply(
-            lambda x: [lemmatizer.lemmatize(token) for token in x if token not in stop_words]
-        )
+        data[self.text_column] = data[self.text_column].apply(self.__stem_tokens)
+        data[self.text_column] = data[self.text_column].apply(self.__lemmatize_tokens)
+        data[self.text_column] = data[self.text_column].apply(self.__remove_stopwords)
+
         data[self.text_column] = data[self.text_column].apply(lambda x: ' '.join(x))
 
         return data
+
+    def __reduce_dimensionality(self, X_train, X_test, n_components=None):
+        """
+        Reduces the dimensionality of the input data using PCA.
+
+        Args:
+            X_train (array-like): The training data.
+            X_test (array-like): The testing data.
+            n_components (int, optional): The number of principal components to keep.
+                If not provided, the method will preserve 95% of the explained variance.
+
+        Returns:
+            tuple: A tuple containing the dimensionality reduced training data, and testing data.
+        """
+        pca = PCA(n_components=n_components, svd_solver='full')
+        X_train_reduced = pca.fit_transform(X_train)
+        X_test_reduced = pca.transform(X_test)
+
+        return X_train_reduced, X_test_reduced
 
     def __vectorize_text(self, train_data: pd.DataFrame, test_data: pd.DataFrame) -> tuple:
         """

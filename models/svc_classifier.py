@@ -2,9 +2,14 @@ import pandas as pd
 from sklearn import svm
 
 
-class SVMSentimentClassifier:
+class SVCSentimentClassifier:
     def __init__(self, C=0.1, coef0=1, degree=4, gamma=1.0, kernel='poly'):
-        self.clf = svm.SVC(C=C, coef0=coef0, degree=degree, gamma=gamma, kernel=kernel)
+        self.clf = svm.SVC(
+            C=C, coef0=coef0, degree=degree, gamma=gamma, kernel=kernel, probability=True,
+        )
+
+    def get_classifier(self):
+        return self.clf
 
     def train(self, X_train: pd.DataFrame, y_train: pd.DataFrame):
         self.clf.fit(X_train, y_train)

@@ -1,2 +1,2 @@
-from .pipeline_v1 import PipelineV1
-from .pipeline_v2 import PipelineV2
+from .text_count_vectorizer_pipeline import TextCountVectorizerPipeline
+from .text_tfid_synonym_augmented_pipeline import TextTfidfSynonymAugmentedPipeline

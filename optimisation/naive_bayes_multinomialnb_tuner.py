@@ -7,7 +7,7 @@ from optimisation.hyperparameter_tuner import HyperparameterTuner
 def fine_tune(X_train, y_train):
     # Define the hyperparameter grid
     param_grid = {
-        'alpha': np.logspace(-3, 0, 20)
+        'alpha': np.logspace(-3, 0, 50)
     }
 
     clf = MultinomialNB()

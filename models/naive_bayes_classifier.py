@@ -4,8 +4,15 @@ from sklearn.naive_bayes import MultinomialNB
 
 
 class NaiveBayesSentimentClassifier:
-    def __init__(self, lambda_reg=1.00):
+    """This class is a simple implementation of Multinomial Naive Bayes model
+    and acts just a wrapper.
+    """
+
+    def __init__(self, lambda_reg=0.1389):
         self.clf = MultinomialNB(alpha=lambda_reg)
+
+    def get_classifier(self):
+        return self.clf
 
     def train(self, X_train: pd.DataFrame, y_train: pd.DataFrame):
         self.clf.fit(X_train, y_train)

@@ -4,7 +4,7 @@ import time
 from models.svm_sentiment_classifier import SVMSentimentClassifier
 from models.naive_bayes_sentiment_classifier import NaiveBayesSentimentClassifier
 from optimisation.naive_bayes_multinomialnb_tuner import fine_tune as naive_bayes_fine_tune
-from optimisation.svm_tuner import fine_tune as svc_fine_tune
+from optimisation.svm_tuner import fine_tune as svm_fine_tune
 from pipelines import TextCountVectorizerPipeline, TextTfidfSynonymAugmentedPipeline
 from report import report
 
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     if os.environ.get("FINE_TUNE"):
         naive_bayes_fine_tune(X_train, y_train)
-        svc_fine_tune(X_train, y_train)
+        svm_fine_tune(X_train, y_train)
 
 
 

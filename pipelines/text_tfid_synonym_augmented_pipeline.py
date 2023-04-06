@@ -47,7 +47,9 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
 
         # Add an augmentation step
         augmented_data = cleaned_data.copy()
-        augmented_data[self.text_column] = cleaned_data[self.text_column].apply(lambda x: self.__synonym_replacement(x, n=1))
+        augmented_data[self.text_column] = cleaned_data[self.text_column].apply(
+            lambda x: self.__synonym_replacement(x, n=1)
+        )
 
         # Combine the original and augmented data
         combined_data = pd.concat([cleaned_data, augmented_data], ignore_index=True)
@@ -86,7 +88,9 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
         filtered_vocabulary = [word for word in vocabulary if pos_words_freq(word) > 0 and neg_words_freq(word) > 0]
 
         # Use the filtered_vocabulary from the training data for the test data
-        vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, vocabulary=filtered_vocabulary, min_df=0.05, max_df=0.95)
+        vectorizer = TfidfVectorizer(
+            ngram_range=self.ngram_range, vocabulary=filtered_vocabulary, min_df=0.05, max_df=0.95
+        )
         X_train = vectorizer.fit_transform(train_data[self.text_column])
         X_test = vectorizer.transform(test_data[self.text_column])
         y_test = test_data[self.label_column]

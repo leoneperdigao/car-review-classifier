@@ -31,6 +31,7 @@ class TextPreprocessingPipelineBase:
         self.negative_label = negative_label
         self.language = language
         self.test_size = test_size
+        self.stop_words = set(stopwords.words(self.language))
 
         nltk.download('punkt')
         nltk.download('wordnet')

@@ -2,7 +2,7 @@ import random
 
 import pandas as pd
 from nltk import word_tokenize
-from nltk.corpus import wordnet, stopwords
+from nltk.corpus import wordnet
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from .text_processing_pipeline_base import TextPreprocessingPipelineBase
@@ -22,7 +22,6 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
             language="english",
             test_size=0.2,
             ngram_range=(1, 2),
-            load_saved_augmented_data=False,
     ):
         super().__init__(
             text_column=text_column,
@@ -32,10 +31,8 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
             language=language,
             test_size=test_size
         )
-        self.synonym_cache = {}
-        self.stop_words = set(stopwords.words(self.language))
+        self.__synonym_cache = {}
         self.ngram_range = ngram_range
-        self.load_saved_augmented_data = load_saved_augmented_data
 
     def pre_process(self):
         """
@@ -48,14 +45,9 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
         """
         cleaned_data = self.clean_text(self.data_source)
 
-        if not self.load_saved_augmented_data:
-            # Add an augmentation step
-            augmented_data = cleaned_data.copy()
-            augmented_data[self.text_column] = cleaned_data[self.text_column].apply(lambda x: self.__synonym_replacement(x, n=1))
-            augmented_data.to_csv("data/augmented_data.csv", index=False)
-        else:
-            # Load augmented_data from the CSV file
-            augmented_data = pd.read_csv("data/augmented_data.csv")
+        # Add an augmentation step
+        augmented_data = cleaned_data.copy()
+        augmented_data[self.text_column] = cleaned_data[self.text_column].apply(lambda x: self.__synonym_replacement(x, n=1))
 
         # Combine the original and augmented data
         combined_data = pd.concat([cleaned_data, augmented_data], ignore_index=True)
@@ -126,14 +118,14 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
         new_words = words.copy()
 
         for i in idxs:
-            if words[i] not in self.synonym_cache:
+            if words[i] not in self.__synonym_cache:
                 synonyms = []
                 for syn in wordnet.synsets(words[i]):
                     for lemma in syn.lemmas():
                         synonyms.append(lemma.name())
-                self.synonym_cache[words[i]] = synonyms
+                self.__synonym_cache[words[i]] = synonyms
             else:
-                synonyms = self.synonym_cache[words[i]]
+                synonyms = self.__synonym_cache[words[i]]
 
             if len(synonyms) > 0:
                 new_word = random.choice(synonyms)

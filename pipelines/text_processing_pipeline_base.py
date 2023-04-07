@@ -33,9 +33,11 @@ class TextPreprocessingPipelineBase:
         self.test_size = test_size
         self.stop_words = set(stopwords.words(self.language))
 
-        nltk.download('punkt')
-        nltk.download('wordnet')
-        nltk.download('stopwords')
+        # The default download location is the user's home folder.
+        # Download NLTK resources is set to be done quietly to not expose the user's home folder name.
+        nltk.download('punkt', quiet=True)  # download Punkt Sentence Tokenizer
+        nltk.download('wordnet', quiet=True)  # download lexical database
+        nltk.download('stopwords', quiet=True)  # download list of stopwords
 
     def pre_process(self):
         raise NotImplemented("This method must be implemented in the child class")

@@ -100,8 +100,11 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
         X_test = vectorizer.transform(test_data[self.text_column])
         y_test = test_data[self.label_column]
 
-        # Log the first 5 samples of the vectorized data
-        self.logger.info(f"Vectorized data (first {self.num_samples_to_log} samples):\n%s", X_train_raw[:5].toarray())
+        # Log the first nth samples of the vectorized data
+        self.logger.info(
+            f"Vectorized data (first {self.num_samples_to_log} samples):\n%s",
+            X_test[:self.num_samples_to_log].toarray(),
+        )
 
         return X_train, y_train, X_test, y_test
 
@@ -131,12 +134,15 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
 
         for i in idxs:
             if words[i] not in self.__synonym_cache:
+                self.logger.debug(f"{words[i]} is not in the cache")
                 synonyms = []
+                # Load all synsets with a given lemma and part of speech tag.
                 for syn in wordnet.synsets(words[i]):
                     for lemma in syn.lemmas():
                         synonyms.append(lemma.name())
                 self.__synonym_cache[words[i]] = synonyms
             else:
+                self.logger.debug(f"{words[i]} is in the cache")
                 synonyms = self.__synonym_cache[words[i]]
 
             if len(synonyms) > 0:

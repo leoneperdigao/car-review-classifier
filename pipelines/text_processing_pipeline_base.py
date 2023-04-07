@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List
 
 import pandas as pd
@@ -26,6 +27,16 @@ class TextPreprocessingPipelineBase:
             test_size=0.2,
             num_samples_to_log=10,
     ):
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(os.environ.get("LOG_LEVEL", logging.INFO))
+
+        # Check if the logger already has handlers
+        if not self.logger.handlers:
+            # If no handlers are attached, add a StreamHandler
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(stream_handler)
+
         self.data_source = None
         self.text_column = text_column
         self.label_column = label_column
@@ -37,23 +48,11 @@ class TextPreprocessingPipelineBase:
 
         self.stop_words = set(stopwords.words(self.language))
 
-        # configure logging
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
-
-        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
-
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
-
-        self.logger.addHandler(stream_handler)
-
         # The default download location is the user's home folder.
         # Download NLTK resources is set to be done quietly to not expose the user's home folder name.
         nltk.download('punkt', quiet=True)  # download Punkt Sentence Tokenizer
         nltk.download('wordnet', quiet=True)  # download lexical database
         nltk.download('stopwords', quiet=True)  # download list of stopwords
-
 
     def pre_process(self):
         raise NotImplemented("This method must be implemented in the child class")
@@ -84,6 +83,7 @@ class TextPreprocessingPipelineBase:
             tuple: A tuple containing the training data, testing data, training labels, and
                 testing labels.
         """
+        self.logger.debug(f"splitting training and test data. Test size is {self.test_size}")
         return train_test_split(data, test_size=self.test_size, shuffle=True, stratify=data[self.label_column])
 
     @staticmethod
@@ -115,16 +115,23 @@ class TextPreprocessingPipelineBase:
         Returns:
             pandas.DataFrame: The cleaned input dataset.
         """
-        # make text case-insensitive
+        self.logger.debug("making text case-insensitive")
         data[self.text_column] = data[self.text_column].apply(lambda x: x.lower())
-        # remove punctuation
+
+        self.logger.debug("removing punctuation from text")
         data[self.text_column] = data[self.text_column].apply(TextPreprocessingPipelineBase.remove_punctuation)
 
+        self.logger.debug("tokenizing text")
         data[self.text_column] = data[self.text_column].apply(lambda x: word_tokenize(x))
+
+        self.logger.debug("steaming tokens")
         data[self.text_column] = data[self.text_column].apply(TextPreprocessingPipelineBase.stem_tokens)
+
+        self.logger.debug("lemmatizing tokens")
         data[self.text_column] = data[self.text_column].apply(TextPreprocessingPipelineBase.lemmatize_tokens)
+
+        self.logger.debug("removing stopwords")
         data[self.text_column] = data[self.text_column].apply(self.remove_stopwords)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: ' '.join(x))
-
         return data

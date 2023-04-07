@@ -5,17 +5,28 @@ This repository contains the implementation and comparison of two sentiment anal
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Data Pre-processing and Augmentation](#data-preprocessing-and-augmentation)
-3. [Feature Representation](#feature-representation)
-4. [Classifier Algorithms](#classifier-algorithms)
-5. [Hyperparameter Tuning](#hyperparameter-tuning)
-6. [Results and Analysis](#results-and-analysis)
-7. [Further Reading](#further-reading)
-8. [References](#references)
+2. [Required Libraries and Installation](#required-libraries-and-installation)
+3. [Data Pre-processing and Augmentation](#data-pre-processing-and-augmentation)
+4. [Feature Representation](#feature-representation)
+5. [Classifier Algorithms](#classifier-algorithms)
+6. [Hyperparameter Tuning](#hyperparameter-tuning)
+7. [Results and Analysis](#results-and-analysis)
+8. [Further Reading](#further-reading)
+9. [References](#references)
 
 ## Overview
 
 The comparison between the Naïve Bayes and SVM classifiers demonstrates significant differences in performance across key metrics such as accuracy, precision, recall, and F1-score. The SVM classifier outperforms the Naïve Bayes classifier, attributing its superior ability to correctly classify sentiment in the given text data to the SVM's ability to find the optimal decision boundary between the two classes and its utilization of the kernel trick for handling non-linear relationships in the feature space.
+
+## Required Libraries and Installation
+
+To run this notebook, you'll need to install the following Python libraries:
+
+```bash
+pip install pandas numpy scikit-learn nltk matplotlib
+```
+
+**Note: Make sure you have Python 3.6 or higher installed before attempting to install these packages.**
 
 ## Data Pre-processing and Augmentation
 

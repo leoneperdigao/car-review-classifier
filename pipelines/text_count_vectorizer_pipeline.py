@@ -82,7 +82,10 @@ class TextCountVectorizerPipeline(TextPreprocessingPipelineBase):
         X_test = vectorizer.transform(test_data[self.text_column])
         y_test = test_data[self.label_column]
 
-        # Log the first 5 samples of the vectorized data
-        self.logger.info(f"Vectorized data (first {self.num_samples_to_log} samples):\n%s", X_train_raw[:5].toarray())
+        # Log the first nth samples of the vectorized data
+        self.logger.info(
+            f"Vectorized data (first {self.num_samples_to_log} samples):\n%s",
+            X_test[:self.num_samples_to_log].toarray(),
+        )
 
         return X_train, y_train, X_test, y_test

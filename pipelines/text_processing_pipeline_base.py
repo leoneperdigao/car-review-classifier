@@ -23,7 +23,8 @@ class TextPreprocessingPipelineBase:
             positive_label="Pos",
             negative_label="Neg",
             language="english",
-            test_size=0.2
+            test_size=0.2,
+            num_samples_to_log=10,
     ):
         self.data_source = None
         self.text_column = text_column
@@ -32,6 +33,8 @@ class TextPreprocessingPipelineBase:
         self.negative_label = negative_label
         self.language = language
         self.test_size = test_size
+        self.num_samples_to_log = num_samples_to_log
+
         self.stop_words = set(stopwords.words(self.language))
 
         # configure logging

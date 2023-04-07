@@ -1,5 +1,3 @@
-import logging
-
 import pandas as pd
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -85,6 +83,6 @@ class TextCountVectorizerPipeline(TextPreprocessingPipelineBase):
         y_test = test_data[self.label_column]
 
         # Log the first 5 samples of the vectorized data
-        self.logger.info("Vectorized data (first 5 samples):\n%s", X_train_raw[:5].toarray())
+        self.logger.info(f"Vectorized data (first {self.num_samples_to_log} samples):\n%s", X_train_raw[:5].toarray())
 
         return X_train, y_train, X_test, y_test

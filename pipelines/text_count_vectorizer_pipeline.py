@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -47,6 +49,11 @@ class TextCountVectorizerPipeline(TextPreprocessingPipelineBase):
         Vectorizes the text data in the input datasets using CountVectorizer and performs feature
         selection using SelectKBest.
 
+        The CountVectorizer from scikit-learn handle unseen words in the test set by default.
+        Therefore, this pipeline handles unseen words in the test set by default. When transforming the test data,
+        any words that are not part of the training data vocabulary are ignored. This means that the model
+        does not attempt to process or classify based on unseen words.
+
         Args:
             train_data (pandas.DataFrame): The training data.
             test_data (pandas.DataFrame): The testing data.
@@ -76,5 +83,8 @@ class TextCountVectorizerPipeline(TextPreprocessingPipelineBase):
         X_train = vectorizer.fit_transform(train_data[self.text_column])
         X_test = vectorizer.transform(test_data[self.text_column])
         y_test = test_data[self.label_column]
+
+        # Log the first 5 samples of the vectorized data
+        self.logger.info("Vectorized data (first 5 samples):\n%s", X_train_raw[:5].toarray())
 
         return X_train, y_train, X_test, y_test

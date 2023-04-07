@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import pandas as pd
@@ -33,11 +34,23 @@ class TextPreprocessingPipelineBase:
         self.test_size = test_size
         self.stop_words = set(stopwords.words(self.language))
 
+        # configure logging
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+
+        self.logger.addHandler(stream_handler)
+
         # The default download location is the user's home folder.
         # Download NLTK resources is set to be done quietly to not expose the user's home folder name.
         nltk.download('punkt', quiet=True)  # download Punkt Sentence Tokenizer
         nltk.download('wordnet', quiet=True)  # download lexical database
         nltk.download('stopwords', quiet=True)  # download list of stopwords
+
 
     def pre_process(self):
         raise NotImplemented("This method must be implemented in the child class")
@@ -99,6 +112,9 @@ class TextPreprocessingPipelineBase:
         Returns:
             pandas.DataFrame: The cleaned input dataset.
         """
+        # make text case-insensitive
+        data[self.text_column] = data[self.text_column].apply(lambda x: x.lower())
+        # remove punctuation
         data[self.text_column] = data[self.text_column].apply(TextPreprocessingPipelineBase.remove_punctuation)
 
         data[self.text_column] = data[self.text_column].apply(lambda x: word_tokenize(x))

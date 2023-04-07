@@ -61,8 +61,7 @@ class TextTfidfSynonymAugmentedPipeline(TextPreprocessingPipelineBase):
 
     def vectorize_text(self, train_data: pd.DataFrame, test_data: pd.DataFrame) -> tuple:
         """
-        Vectorizes the text data in the input datasets using TfidfVectorizer and performs feature
-        selection using SelectKBest.
+        Vectorizes the text data in the input datasets using TfidfVectorizer.
 
         The TfidfVectorizer from scikit-learn handle unseen words in the test set by default.
         Therefore, this pipeline handles unseen words in the test set by default. When transforming the test data,
